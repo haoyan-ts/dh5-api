@@ -31,7 +31,7 @@ def main():
     try:
         # Initialize robot (open position - mode 2)
         print("\nInitializing robot to open position...")
-        robot.initialize(mode=2)
+        robot.initialize()
 
         # Wait for initialization to complete
         time.sleep(3)

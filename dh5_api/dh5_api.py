@@ -305,9 +305,8 @@ class DH5ModbusAPI:
         if not self.client:
             raise ConnectionError("Modbus client not initialized")
 
-        # Initialize to open pose
-        self.initialize(2)
-        time.sleep(2)
+        # Initialize all axes
+        self.initialize()
 
         while True:
             results = self.check_initialization()
@@ -678,37 +677,27 @@ class DH5ModbusAPI:
         return result if isinstance(result, int) else self.ERROR_INVALID_RESPONSE
 
     # Initialization Methods
-    def initialize(self, mode: int) -> int:
-        """Initialize all 6 axes with a specific mode
+    def initialize(self) -> int:
+        """Initialize all axes one by one in close then open mode"""
+        for axis in range(1, 7):
+            result = self.initialize_axis(axis, DH5Registers.INIT_MODE_CLOSE)
+            logger.debug(f"Axis {axis} close init result: {result}")
+            if result != self.SUCCESS:
+                return result
+            time.sleep(0.5)  # Small delay between commands
 
-        Args:
-            mode: Initialization mode
-                - 0b01 (1): Close
-                - 0b10 (2): Open
-                - 0b11 (3): Find total stroke
+        time.sleep(1)  # Wait for all axes to close
 
-        Returns:
-            SUCCESS if command sent successfully, error code otherwise
-        """
-        if mode not in [
-            DH5Registers.INIT_MODE_CLOSE,
-            DH5Registers.INIT_MODE_OPEN,
-            DH5Registers.INIT_MODE_FIND_STROKE,
-        ]:
-            raise ValueError(
-                "Mode must be 0b01 (close), 0b10 (open), or 0b11 (find stroke)"
-            )
+        for axis in range(1, 7):
+            result = self.initialize_axis(axis, DH5Registers.INIT_MODE_OPEN)
+            logger.debug(f"Axis {axis} open init result: {result}")
+            if result != self.SUCCESS:
+                return result
+            time.sleep(0.5)  # Small delay between commands
 
-        data = 0
-        for axis in range(6):
-            data |= mode << (axis * 2)  # Set all axes to the given mode
+        time.sleep(1)  # Wait for all axes to open
 
-        result = self.send_modbus_command(
-            function_code=ModbusFunction.WRITE_SINGLE_REGISTER,
-            register_address=DH5Registers.RETURN_TO_ZERO,
-            data=data,
-        )
-        return result if isinstance(result, int) else self.ERROR_INVALID_RESPONSE
+        return self.SUCCESS
 
     def initialize_axis(self, axis: int, mode: int) -> int:
         """Initialize a specific axis with a specific mode
