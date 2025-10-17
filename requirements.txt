@@ -1,0 +1,9 @@
+# DH5 API - Production Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+loguru>=0.7.0
+pymodbus>=3.0.0
+
+# Development dependencies (optional)
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
