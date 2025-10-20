@@ -343,10 +343,11 @@ class DH5ModbusAPI:
             )
 
         clamped_positions = []
+        margin = 10
         for i, (pos, max_pos) in enumerate(zip(positions, self.max_positions)):
             # Ensure position is within (0, max_pos) range
             clamped_pos = max(
-                1, min(pos, max_pos - 10)
+                margin, min(pos, max_pos - margin)
             )  # Keep at least 10 units away from limits
             if clamped_pos != pos:
                 logger.trace(
