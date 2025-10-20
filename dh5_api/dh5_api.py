@@ -1,10 +1,10 @@
 import time
 from enum import IntEnum
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from loguru import logger
 from pymodbus.client.serial import ModbusSerialClient
-from pymodbus.exceptions import ModbusException, ConnectionException
+from pymodbus.exceptions import ModbusException
 from pymodbus.pdu import ExceptionResponse, ModbusPDU
 
 
@@ -679,23 +679,55 @@ class DH5ModbusAPI:
     # Initialization Methods
     def initialize(self) -> int:
         """Initialize all axes one by one in close then open mode"""
-        for axis in range(1, 7):
+        for axis in [2, 3, 4, 5, 1, 6]:
             result = self.initialize_axis(axis, DH5Registers.INIT_MODE_CLOSE)
             logger.debug(f"Axis {axis} close init result: {result}")
             if result != self.SUCCESS:
                 return result
             time.sleep(0.5)  # Small delay between commands
 
-        time.sleep(1)  # Wait for all axes to close
+        retry_count = 10
+        for attempt in range(retry_count):
+            results = self.check_initialization()
 
-        for axis in range(1, 7):
+            if isinstance(results, dict) and len(results) == DH5Registers.AXIS_COUNT:
+                if all(status == "initialized" for status in results.values()):
+                    break
+
+            logger.debug(
+                f"Initialization status (attempt {attempt + 1}/{retry_count}): {results}"
+            )
+            time.sleep(1)
+        else:
+            logger.error(
+                f"Initialization did not complete within {retry_count} attempts"
+            )
+            return self.ERROR_INVALID_RESPONSE
+
+        for axis in [6, 1, 5, 4, 3, 2]:
             result = self.initialize_axis(axis, DH5Registers.INIT_MODE_OPEN)
             logger.debug(f"Axis {axis} open init result: {result}")
             if result != self.SUCCESS:
                 return result
             time.sleep(0.5)  # Small delay between commands
 
-        time.sleep(1)  # Wait for all axes to open
+        retry_count = 10
+        for attempt in range(retry_count):
+            results = self.check_initialization()
+
+            if isinstance(results, dict) and len(results) == DH5Registers.AXIS_COUNT:
+                if all(status == "initialized" for status in results.values()):
+                    break
+
+            logger.debug(
+                f"Initialization status (attempt {attempt + 1}/{retry_count}): {results}"
+            )
+            time.sleep(1)
+        else:
+            logger.error(
+                f"Initialization did not complete within {retry_count} attempts"
+            )
+            return self.ERROR_INVALID_RESPONSE
 
         return self.SUCCESS
 
