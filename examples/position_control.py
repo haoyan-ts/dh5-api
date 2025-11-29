@@ -22,7 +22,7 @@ def absolute_position_control(robot):
     ]
 
     for i, positions in enumerate(positions_list):
-        print(f"\nMoving to position {i+1}: {positions}")
+        print(f"\nMoving to position {i + 1}: {positions}")
         result = robot.set_all_positions(positions)
 
         if result == robot.SUCCESS:
@@ -59,7 +59,7 @@ def ratio_based_control(robot):
     ]
 
     for i, ratios in enumerate(ratio_positions):
-        print(f"\nMoving to ratio {i+1}: {ratios}")
+        print(f"\nMoving to ratio {i + 1}: {ratios}")
         result = robot.set_all_positions_by_ratio(ratios)
 
         if result == robot.SUCCESS:

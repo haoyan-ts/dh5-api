@@ -351,7 +351,7 @@ class DH5ModbusAPI:
             )  # Keep at least 10 units away from limits
             if clamped_pos != pos:
                 logger.trace(
-                    f"Axis {i+1} position {pos} clamped to {clamped_pos} (max: {max_pos})"
+                    f"Axis {i + 1} position {pos} clamped to {clamped_pos} (max: {max_pos})"
                 )
             clamped_positions.append(clamped_pos)
 
